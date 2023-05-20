@@ -1,25 +1,74 @@
-import logo from './logo.svg';
-import './App.css';
+import defaultProducts from "./products";
+import { useState } from 'react';
+import ProductList from "./ProductList";
+import ProductSearchInput from "./ProductSearchInput";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+export default function App() {
+  const [products, setProducts] = useState(defaultProducts);
+  const [query, setQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  const categories = [...new Set(products.map(product => product.category))];
+
+  function handleChange(e) {
+    setSelectedCategory(e.target.value);
+  }
+
+  function handleInput(e) {
+    setQuery(e.target.value);
+  }
+
+  function filterProducts(query, products, selectedCategory) {
+    let filteredProducts = products;
+
+    /* Filter by Query */
+    filteredProducts = filteredProducts.filter((product) => {
+      /* Challenge: Match product description */
+      const name = product.name.toLowerCase();
+      return name.match(query.toLowerCase());
+    });
+
+    /* Filter by Category */
+    if (selectedCategory !== "all") {
+      filteredProducts = filteredProducts.filter((product) => {
+        return product.category === selectedCategory;
+      });
+    }
+
+    /* Challenge: Filter by Price Range */
+    /* Challenge: Filter by Rating */
+
+    return filteredProducts;
+  }
+
+  const filteredProducts = filterProducts(query, products, selectedCategory);
+
+  return <div>
+    <ProductSearchInput query={query} handleInput={handleInput} />
+    <CategorySelect
+      categories={categories}
+      selectedCategory={selectedCategory}
+      handleChange={handleChange}
+    />
+    <ProductList products={filteredProducts} />
+  </div>;
 }
 
-export default App;
+function CategorySelect(props) {
+  const { categories, selectedCategory, handleChange } = props;
+
+  return (<div>
+    <select
+      name={"category"}
+      value={selectedCategory}
+      onChange={handleChange}
+    >
+      <option value={"all"}>All Categories</option>
+      {categories.map(category => {
+        return (<option value={category} key={category}>
+          {category}
+        </option>);
+      })}
+    </select>
+  </div>);
+}
